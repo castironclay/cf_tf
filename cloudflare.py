@@ -52,39 +52,46 @@ def view():
 
 
 @app.command()
-def delete():
+def delete(name: str):
     """
     Delete WARP connector
     """
     s, creds = build_session()
-    with open("tunnel.json", "r") as openfile:
+    with open(f"{name}.json", "r") as openfile:
         json_object = json.load(openfile)
 
     tunnel_id = json_object.get("id")
+    tunnel_name = json_object.get("credentials_file").get("TunnelName")
+
+    payload = {"name": tunnel_name}
+
+    payload_json = json.dumps(payload)
 
     response = s.delete(
         f"https://api.cloudflare.com/client/v4/accounts/{creds.get('account_id')}/warp_connector/{tunnel_id}",
-        data='{"name": "testing"}',
+        data=payload_json,
     )
 
     if response.status_code != 200:
         print(json.dumps({"status": str(response.status_code), "msg": response.reason}))
         return
 
-
     print(json.dumps({"TunnelName": "None", "TunnelSecret": "None"}))
 
 
 @app.command()
-def create():
+def create(name: str):
     """
     Create WARP connector
     """
     s, creds = build_session()
+    payload = {"name": name}
+
+    payload_json = json.dumps(payload)
 
     response = s.post(
         f"https://api.cloudflare.com/client/v4/accounts/{creds.get('account_id')}/warp_connector",
-        data='{"name": "testing"}',
+        data=payload_json,
     )
 
     if response.status_code != 200:
@@ -93,7 +100,7 @@ def create():
 
     data = json.loads(response.content)
 
-    with open("tunnel.json", "w") as outfile:
+    with open(f"{name}.json", "w") as outfile:
         data_for_file = json.dumps(data.get("result"))
         outfile.write(data_for_file)
 

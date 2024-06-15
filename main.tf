@@ -1,5 +1,9 @@
-data "external" "tunnel" {
-  program = ["python3", "${path.module}/cloudflare.py", var.tunnel]
+data "external" "tunnel1" {
+  program = ["python3", "${path.module}/cloudflare.py", var.tunnel, "${var.tunnel_name}1"]
+}
+
+data "external" "tunnel2" {
+  program = ["python3", "${path.module}/cloudflare.py", var.tunnel, "${var.tunnel_name}2"]
 }
 
 variable "tunnel" {
@@ -8,6 +12,10 @@ variable "tunnel" {
     condition     = contains(["create", "delete"], var.tunnel)
     error_message = "valid values for var: tunnel are (create or destroy)."
   }
+}
+
+variable "tunnel_name" {
+  type = string
 }
 
 variable "zone_id" {
@@ -19,20 +27,40 @@ resource "cloudflare_access_service_token" "my_app" {
   zone_id = var.zone_id
 }
 
-output "tunnel_name" {
-  value = data.external.tunnel.result["TunnelName"]
-}
-
-data "template_file" "mdm_config" {
+data "template_file" "mdm_config1" {
   template = file("${path.module}/mdm.xml.tmpl")
 
   vars = {
     ACCESS_KEY = cloudflare_access_service_token.my_app.client_id
     SECRET_KEY = cloudflare_access_service_token.my_app.client_secret
-    TUNNEL_KEY = data.external.tunnel.result["TunnelSecret"]
+    TUNNEL_KEY = data.external.tunnel1.result["TunnelSecret"]
     ORG_NAME   = "castironclay"
   }
 }
-output "mdm_config" {
-  value = data.template_file.mdm_config.rendered
+
+data "template_file" "mdm_config2" {
+  template = file("${path.module}/mdm.xml.tmpl")
+
+  vars = {
+    ACCESS_KEY = cloudflare_access_service_token.my_app.client_id
+    SECRET_KEY = cloudflare_access_service_token.my_app.client_secret
+    TUNNEL_KEY = data.external.tunnel2.result["TunnelSecret"]
+    ORG_NAME   = "castironclay"
+  }
+}
+output "mdm_config1" {
+  value = data.template_file.mdm_config1.rendered
+}
+
+output "mdm_config2" {
+  value = data.template_file.mdm_config2.rendered
+}
+resource "local_file" "mdm1" {
+  content  = data.template_file.mdm_config1.rendered
+  filename = "${path.module}/mdm1.xml"
+}
+
+resource "local_file" "mdm2" {
+  content  = data.template_file.mdm_config2.rendered
+  filename = "${path.module}/mdm2.xml"
 }
