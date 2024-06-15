@@ -76,9 +76,10 @@ def delete(name: str):
     if response.status_code != 200:
         print(json.dumps({"status": str(response.status_code), "msg": response.reason}))
         return
+
     os.remove(f"{name}.json")
 
-    print(json.dumps({"TunnelName": "None", "TunnelSecret": "None"}))
+    print(json.dumps({"TunnelName": "None", "TunnelToken": "None"}))
 
 
 @app.command()
@@ -112,9 +113,7 @@ def create(name: str):
                 "TunnelName": data.get("result")
                 .get("credentials_file")
                 .get("TunnelName"),
-                "TunnelSecret": data.get("result")
-                .get("credentials_file")
-                .get("TunnelSecret"),
+                "TunnelToken": data.get("result").get("token"),
             }
         )
     )

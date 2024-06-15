@@ -33,7 +33,7 @@ data "template_file" "mdm_config1" {
   vars = {
     ACCESS_KEY = cloudflare_access_service_token.my_token.client_id
     SECRET_KEY = cloudflare_access_service_token.my_token.client_secret
-    TUNNEL_KEY = data.external.tunnel1.result["TunnelSecret"]
+    TUNNEL_KEY = data.external.tunnel1.result["TunnelToken"]
     ORG_NAME   = "castironclay"
   }
 }
@@ -44,7 +44,7 @@ data "template_file" "mdm_config2" {
   vars = {
     ACCESS_KEY = cloudflare_access_service_token.my_token.client_id
     SECRET_KEY = cloudflare_access_service_token.my_token.client_secret
-    TUNNEL_KEY = data.external.tunnel2.result["TunnelSecret"]
+    TUNNEL_KEY = data.external.tunnel2.result["TunnelToken"]
     ORG_NAME   = "castironclay"
   }
 }
