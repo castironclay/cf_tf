@@ -10,6 +10,10 @@ from rich.table import Table
 app = typer.Typer(pretty_exceptions_enable=False)
 view_app = typer.Typer()
 app.add_typer(view_app, name="view", help="View tunnel details")
+delete_app = typer.Typer()
+app.add_typer(delete_app, name="delete", help="Delete tunnels")
+create_app = typer.Typer()
+app.add_typer(create_app, name="create", help="Create tunnels")
 
 
 @app.callback()
@@ -40,7 +44,7 @@ def build_session() -> tuple[Session, dict]:
 
 @view_app.command("cfd")
 def view_cfd(
-    name: str = typer.Option(help="Tunnel name"),
+    name: str = typer.Option(None, help="Tunnel name"),
     token: bool = typer.Option(False, help="Display tunnel token"),
 ):
     """
@@ -96,11 +100,11 @@ def view_cfd(
 
 @view_app.command("warp")
 def view_warp(
-    name: str = typer.Option(help="Tunnel name"),
+    name: str = typer.Option(None, help="Tunnel name"),
     token: bool = typer.Option(False, help="Display tunnel token"),
 ):
     """
-    Get WARP connector tunnel details
+    View WARP tunnel details
     """
     s, creds = build_session()
 
@@ -153,7 +157,7 @@ def view_warp(
 @app.command()
 def list():
     """
-    List existing WARP connectors
+    List existing Zero Trust tunnels
     """
     s, creds = build_session()
 
@@ -181,10 +185,10 @@ def list():
     console.print(table)
 
 
-@app.command()
-def delete(name: str):
+@delete_app.command("cfd")
+def delete_cfd(name: str):
     """
-    Delete WARP connector
+    Delete Cloudflared tunnel
     """
     s, creds = build_session()
     response = s.get(
@@ -193,7 +197,33 @@ def delete(name: str):
     all_tunnels = response.json()
     tunnel_id = ""
     for tunnel in all_tunnels.get("result"):
-        if tunnel.get("name") == name:
+        if tunnel.get("name") == name and tunnel.get("deleted_at") == None:
+            tunnel_id = tunnel.get("id")
+
+    response = s.delete(
+        f"https://api.cloudflare.com/client/v4/accounts/{creds.get('account_id')}/cfd_tunnel/{tunnel_id}"
+    )
+
+    if response.status_code != 200:
+        print(json.dumps({"status": str(response.status_code), "msg": response.reason}))
+        return
+
+    print(json.dumps({"TunnelName": "None", "TunnelToken": "None"}))
+
+
+@delete_app.command("warp")
+def delete_warp(name: str):
+    """
+    Delete WARP tunnel
+    """
+    s, creds = build_session()
+    response = s.get(
+        f"https://api.cloudflare.com/client/v4/accounts/{creds.get('account_id')}/tunnels",
+    )
+    all_tunnels = response.json()
+    tunnel_id = ""
+    for tunnel in all_tunnels.get("result"):
+        if tunnel.get("name") == name and tunnel.get("deleted_at") == None:
             tunnel_id = tunnel.get("id")
 
     response = s.delete(
@@ -207,8 +237,40 @@ def delete(name: str):
     print(json.dumps({"TunnelName": "None", "TunnelToken": "None"}))
 
 
-@app.command()
-def create(name: str):
+@create_app.command("cfd")
+def create_cfd(name: str):
+    """
+    Create WARP connector
+    """
+    s, creds = build_session()
+    payload = {"name": name}
+
+    payload_json = json.dumps(payload)
+
+    response = s.post(
+        f"https://api.cloudflare.com/client/v4/accounts/{creds.get('account_id')}/cfd_tunnel",
+        data=payload_json,
+    )
+
+    if response.status_code != 200:
+        print(json.dumps({"status": str(response.status_code), "msg": response.reason}))
+        return
+
+    data = json.loads(response.content)
+    print(
+        json.dumps(
+            {
+                "TunnelName": data.get("result")
+                .get("credentials_file")
+                .get("TunnelName"),
+                "TunnelToken": data.get("result").get("token"),
+            }
+        )
+    )
+
+
+@create_app.command("warp")
+def create_warp(name: str):
     """
     Create WARP connector
     """
