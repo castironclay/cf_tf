@@ -1,5 +1,4 @@
 import json
-import os
 
 import typer
 import yaml
@@ -9,8 +8,8 @@ from rich.console import Console
 from rich.table import Table
 
 app = typer.Typer(pretty_exceptions_enable=False)
-get_app = typer.Typer()
-app.add_typer(get_app, name="get")
+view_app = typer.Typer()
+app.add_typer(view_app, name="view", help="View tunnel details")
 
 
 @app.callback()
@@ -21,7 +20,7 @@ def callback():
     """
 
 
-def read_creds_file() -> dict:
+def read_creds_file():
     with open("cf_config.yaml", "r") as creds_file:
         all_creds = yaml.safe_load(creds_file)
 
@@ -39,8 +38,64 @@ def build_session() -> tuple[Session, dict]:
     return s, creds
 
 
-@get_app.command("warp")
-def get_warp(
+@view_app.command("cfd")
+def view_cfd(
+    name: str = typer.Option(help="Tunnel name"),
+    token: bool = typer.Option(False, help="Display tunnel token"),
+):
+    """
+    View Cloudflared tunnel details
+    """
+    s, creds = build_session()
+
+    response = s.get(
+        f"https://api.cloudflare.com/client/v4/accounts/{creds.get('account_id')}/tunnels",
+    )
+    all_tunnels = response.json()
+    tunnel_id = ""
+    for tunnel in all_tunnels.get("result"):
+        if tunnel.get("name") == name and tunnel.get("deleted_at") == None:
+            tunnel_id = tunnel.get("id")
+
+    tunnel_info = s.get(
+        f"https://api.cloudflare.com/client/v4/accounts/{creds.get('account_id')}/cfd_tunnel/{tunnel_id}",
+    )
+
+    if tunnel_info.status_code != 200:
+        print(
+            json.dumps(
+                {"status": str(tunnel_info.status_code), "msg": tunnel_info.reason}
+            )
+        )
+        return
+
+    tunnel = tunnel_info.json()
+    tunnel_result = tunnel.get("result")
+
+    if token:
+        tunnel_token = s.get(
+            f"https://api.cloudflare.com/client/v4/accounts/{creds.get('account_id')}/cfd_tunnel/{tunnel_id}/token",
+        )
+
+        if tunnel_token.status_code != 200:
+            print(
+                json.dumps(
+                    {
+                        "status": str(tunnel_token.status_code),
+                        "msg": tunnel_token.reason,
+                    }
+                )
+            )
+            return
+        tunnel_token = tunnel_token.json()
+
+        tunnel_result["token"] = tunnel_token.get("result")
+
+    rprint(tunnel_result)
+
+
+@view_app.command("warp")
+def view_warp(
     name: str = typer.Option(help="Tunnel name"),
     token: bool = typer.Option(False, help="Display tunnel token"),
 ):
