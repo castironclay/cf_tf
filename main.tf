@@ -10,7 +10,7 @@ variable "tunnel" {
   type = string
   validation {
     condition     = contains(["create", "delete"], var.tunnel)
-    error_message = "valid values for var: tunnel are (create or destroy)."
+    error_message = "valid values for var: tunnel are (create or delete)."
   }
 }
 
@@ -22,8 +22,8 @@ variable "zone_id" {
   type = string
 }
 
-resource "cloudflare_access_service_token" "my_app" {
-  name    = "CI/CD app"
+resource "cloudflare_access_service_token" "my_token" {
+  name    = var.tunnel_name
   zone_id = var.zone_id
 }
 
