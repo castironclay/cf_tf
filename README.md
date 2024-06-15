@@ -8,3 +8,10 @@ api_email:
 organization: 
 zone_id: 
 ```
+
+terraform.tfvars
+```bash
+email   = 
+zone_id = 
+api_key =
+```
