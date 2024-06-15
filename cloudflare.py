@@ -1,4 +1,5 @@
 import json
+import os
 
 import typer
 import yaml
@@ -75,6 +76,7 @@ def delete(name: str):
     if response.status_code != 200:
         print(json.dumps({"status": str(response.status_code), "msg": response.reason}))
         return
+    os.remove(f"{name}.json")
 
     print(json.dumps({"TunnelName": "None", "TunnelSecret": "None"}))
 
