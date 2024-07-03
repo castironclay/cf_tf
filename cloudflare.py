@@ -1,7 +1,6 @@
 import json
-
-import typer
 import yaml
+import typer
 from requests import Session, session
 from rich import print as rprint
 from rich.console import Console
@@ -155,34 +154,50 @@ def view_warp(
 
 
 @app.command()
-def list():
+def list(type: str) -> Table:
     """
-    List existing Zero Trust tunnels
+    List existing Zero Trust or Cloudflared tunnels
     """
     s, creds = build_session()
 
-    response = s.get(
-        f"https://api.cloudflare.com/client/v4/accounts/{creds.get('account_id')}/tunnels",
-    )
+    if type == "warp":
+        response = s.get(
+            f"https://api.cloudflare.com/client/v4/accounts/{creds.get('account_id')}/warp_connector",
+        )
 
-    if response.status_code != 200:
-        print(json.dumps({"status": str(response.status_code), "msg": response.reason}))
-        return
-    tunnels = response.json()
-    table = Table(title="Cloudflare Tunnels")
+        if response.status_code != 200:
+            print(
+                json.dumps(
+                    {"status": str(response.status_code), "msg": response.reason}
+                )
+            )
+            return
+        tunnels = response.json()
+        table = Table()
 
-    table.add_column("Type", justify="right", style="cyan", no_wrap=True)
+    if type == "cfd":
+        response = s.get(
+            f"https://api.cloudflare.com/client/v4/accounts/{creds.get('account_id')}/cfd_tunnel",
+        )
+
+        if response.status_code != 200:
+            print(
+                json.dumps(
+                    {"status": str(response.status_code), "msg": response.reason}
+                )
+            )
+            return
+        tunnels = response.json()
+        table = Table()
+
     table.add_column("Name", style="magenta")
     table.add_column("Status", justify="right", style="green")
 
     for tunnel in tunnels.get("result"):
         if tunnel.get("deleted_at") == None:
-            table.add_row(
-                tunnel.get("tun_type"), tunnel.get("name"), tunnel.get("status")
-            )
+            table.add_row(tunnel.get("name"), tunnel.get("status"))
 
-    console = Console()
-    console.print(table)
+    return table
 
 
 @delete_app.command("cfd")
