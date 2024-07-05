@@ -3,7 +3,6 @@ import yaml
 import typer
 from requests import Session, session
 from rich import print as rprint
-from rich.console import Console
 from rich.table import Table
 
 app = typer.Typer(pretty_exceptions_enable=False)
@@ -192,11 +191,10 @@ def list(type: str) -> Table:
 
     table.add_column("Name", style="magenta")
     table.add_column("Status", justify="right", style="green")
-
+    
     for tunnel in tunnels.get("result"):
         if tunnel.get("deleted_at") == None:
             table.add_row(tunnel.get("name"), tunnel.get("status"))
-
     return table
 
 

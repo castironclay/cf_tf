@@ -1,7 +1,16 @@
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
-from textual.widgets import Footer, Header, Static, Button, Input
+from textual.widgets import (
+    Footer,
+    Header,
+    Static,
+    Button,
+    Input,
+    ListItem,
+    ListView,
+    Label,
+)
 from cloudflare import list, create_warp, create_cfd
 from rich.console import Console
 
@@ -31,18 +40,20 @@ class CfTunnelApp(App):
         yield Horizontal(
             Vertical(
                 Input(
-                    placeholder="Name",
+                    placeholder="New tunnel name",
                     type="text",
                     tooltip="Name for tunnel",
                     id="warp_input",
                 ),
+                Button("Delete", id="delete_warp"),
                 WARP,
                 Input(
-                    placeholder="Name",
+                    placeholder="New tunnel name",
                     type="text",
                     tooltip="Name for tunnel",
                     id="cfd_input",
                 ),
+                Button("Delete", id="delete_cfd"),
                 CFD,
                 classes="column",
                 id="action_buttons",
@@ -69,6 +80,9 @@ class CfTunnelApp(App):
             event.input.clear()
             self.notify("Cloudflared tunnel created", severity="success", timeout=10)
             self.query_one("#list_cfd").update(list("cfd"))
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        pass
 
 
 if __name__ == "__main__":

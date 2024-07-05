@@ -19,7 +19,8 @@ Static {
     height: 1fr;
 }
 Button {
-    width: 100%
+    width: 100%;
+    height: 3;
 }
 
 .column {
