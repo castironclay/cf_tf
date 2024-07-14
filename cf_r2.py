@@ -15,7 +15,7 @@ creds = read_creds_file()
 
 def upload_file(file_contents: str) -> str:
     filename = str(uuid4())
-    filename = f'config_{filename}'
+    filename = f"config_{filename}"
     s3 = boto3.client(
         service_name="s3",
         endpoint_url=creds.get("r2_endpoint"),

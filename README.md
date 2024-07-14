@@ -26,10 +26,3 @@ r2_access_key:
 r2_secret_key:
 r2_endpoint:
 ```
-
-terraform.tfvars
-```bash
-email   = 
-zone_id = 
-api_key =
-```
