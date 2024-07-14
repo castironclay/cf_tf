@@ -1,5 +1,5 @@
 # Cloudflare Tunnel
-Manage Cloudflare Zero-Trust tunnels from the CLI
+Manage Cloudflare Zero-Trust tunnels from the CLI. Slowly refactoring this to Textual
 ## Requirement
 - Cloudfare account
 - Python3.12
