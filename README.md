@@ -15,11 +15,16 @@ python -m pip install -r requirements.txt
 cf_config.yaml
 ```yaml
 ---
-account_id: 
-api_key: 
-api_email: 
-organization: 
-zone_id: 
+account_id:
+api_key:
+api_email:
+organization:
+zone_id:
+r2_bucket:
+r2_token:
+r2_access_key:
+r2_secret_key:
+r2_endpoint:
 ```
 
 terraform.tfvars
