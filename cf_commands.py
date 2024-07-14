@@ -200,7 +200,7 @@ def list(type: str) -> Table:
     for tunnel in tunnels.get("result"):
         if tunnel.get("deleted_at") == None:
             table.add_row(tunnel.get("name"), tunnel.get("status"))
-    
+
     return table
 
 
