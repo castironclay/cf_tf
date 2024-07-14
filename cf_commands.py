@@ -1,9 +1,12 @@
 import json
 import yaml
 import typer
+
 from requests import Session, session
 from rich import print as rprint
 from rich.table import Table
+from generate_mdm import render
+from cf_r2 import upload_file
 
 app = typer.Typer(pretty_exceptions_enable=False)
 view_app = typer.Typer()
@@ -29,9 +32,11 @@ def read_creds_file():
     return all_creds
 
 
+creds = read_creds_file()
+
+
 def build_session() -> tuple[Session, dict]:
     s = session()
-    creds = read_creds_file()
 
     s.headers.update({"X-Auth-Key": f"{creds.get("api_key")}"})
     s.headers.update({"X-Auth-Email": f"{creds.get("api_email")}"})
@@ -191,7 +196,7 @@ def list(type: str) -> Table:
 
     table.add_column("Name", style="magenta")
     table.add_column("Status", justify="right", style="green")
-    
+
     for tunnel in tunnels.get("result"):
         if tunnel.get("deleted_at") == None:
             table.add_row(tunnel.get("name"), tunnel.get("status"))
@@ -253,7 +258,7 @@ def delete_warp(name: str):
 @create_app.command("cfd")
 def create_cfd(name: str):
     """
-    Create WARP connector
+    Create Cloudflared tunnel
     """
     s, creds = build_session()
     payload = {"name": name}
@@ -302,16 +307,13 @@ def create_warp(name: str):
         return
 
     data = json.loads(response.content)
-    print(
-        json.dumps(
-            {
-                "TunnelName": data.get("result")
-                .get("credentials_file")
-                .get("TunnelName"),
-                "TunnelToken": data.get("result").get("token"),
-            }
-        )
-    )
+
+    values = {}
+    values["client_id_access"] = creds.get("access_client_id")
+    values["client_secret"] = creds.get("access_secret")
+    values["connector_token"] = data.get("result").get("token")
+
+    upload_file(render("warp_debian_setup", values))
 
 
 if __name__ == "__main__":

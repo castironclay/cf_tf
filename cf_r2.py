@@ -9,17 +9,21 @@ def read_creds_file():
 
 creds = read_creds_file()
 
-s3 = boto3.client(
-        service_name ="s3",
-        endpoint_url = creds.get('r2_endpoint'),
-        aws_access_key_id = creds.get('r2_access_key'),
-        aws_secret_access_key = creds.get('r2_secret_key'),
-        region_name="auto"
-)
-response = s3.generate_presigned_url('get_object', Params={'Bucket': 'zerotrust', 'Key': 'argo_logo.png'}, ExpiresIn=60)
+def upload_file(file_contents: str) -> str:
+    s3 = boto3.client(
+            service_name ="s3",
+            endpoint_url = creds.get('r2_endpoint'),
+            aws_access_key_id = creds.get('r2_access_key'),
+            aws_secret_access_key = creds.get('r2_secret_key'),
+            region_name="auto"
+    )
 
-upload_files = s3.upload_file('cf_config.yaml', creds.get('r2_bucket'), 'hello.txt')
+    s3.put_object(
+        Body=file_contents.encode(),
+        Bucket=creds.get('r2_bucket'),
+        Key='objectkey',
+    )
 
+    response = s3.generate_presigned_url('get_object', Params={'Bucket': 'zerotrust', 'Key': 'objectkey'}, ExpiresIn=600)
 
-print(response)
-print(upload_files)
+    print(f"{response}")

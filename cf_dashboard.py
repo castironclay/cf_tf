@@ -3,7 +3,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, Grid
 from textual.widgets import Footer, Header, Static, Button, Input, Label
-from cloudflare import list, create_warp, create_cfd
+from cf_commands import list, create_warp, create_cfd
 from rich.console import Console
 
 console = Console()
