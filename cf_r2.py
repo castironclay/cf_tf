@@ -33,5 +33,6 @@ def upload_file(file_contents: str) -> str:
     response = s3.generate_presigned_url(
         "get_object", Params={"Bucket": "zerotrust", "Key": filename}, ExpiresIn=600
     )
+    link = f'curl "{response}" | bash'
 
-    print(f'curl "{response}" | bash')
+    return link

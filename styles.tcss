@@ -10,9 +10,6 @@
     border: dashed green;
 }
 
-#action_buttons {
-    width: 20%;
-}
 Static {
     content-align: center middle;
     border: solid darkred;
@@ -27,18 +24,6 @@ Button {
     width: 1fr;
 }
 
-Screen {
-    background: black;
-}
-
-Screen > Label {
-    width: 100%;
-    height: 5;
-    content-align: center middle;
-    color: white;
-    margin: 1;
-    box-sizing: border-box;
-}
 QuitScreen {
     align: center middle;
 }

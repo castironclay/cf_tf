@@ -314,7 +314,9 @@ def create_warp(name: str):
     values["client_secret"] = creds.get("access_secret")
     values["connector_token"] = data.get("result").get("token")
 
-    upload_file(render("warp_debian_setup", values))
+    link = upload_file(render("warp_debian_setup", values))
+
+    return link
 
 
 if __name__ == "__main__":

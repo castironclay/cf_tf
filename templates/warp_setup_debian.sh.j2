@@ -5,6 +5,12 @@ echo "deb [arch=amd64 signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyr
 
 sudo apt-get update && sudo apt-get install -y cloudflare-warp 
 
+mdm_file="/var/lib/cloudflare-warp/mdm.xml"
+
+if [ -f "$mdm_file" ] ; then
+    rm -f "$mdm_file"
+fi
+
 cat << EOF >> /var/lib/cloudflare-warp/mdm.xml
 <dict>
   <key>organization</key>
