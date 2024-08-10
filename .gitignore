@@ -40,3 +40,6 @@ terraform.rc
 .venv
 venv
 __pycache__/
+
+workflows.txt
+keys.yaml
