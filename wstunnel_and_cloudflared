@@ -1,0 +1,10 @@
+#Server
+wstunnel server ws://0.0.0.0 --restrict-to 127.0.0.1:51820
+cloudflared tunnel --url 127.0.0.1:80
+
+
+#Client
+wstunnel client -L udp://127.0.0.1:51820:127.0.0.1:51820 wss://{your_random_cf_domain}
+
+
+
