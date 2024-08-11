@@ -10,47 +10,61 @@ def read_creds_file():
     return all_creds
 
 
-def build_sessions() -> list[dict]:
-    sessions: list = []
-    creds = read_creds_file()
-    for account in creds.keys():
-        details = creds.get(account)
-        session_info: dict = {}
-        btoken = creds.get(account).get("key")
+class Workflow:
+    def __init__(self, account_details):
+        self.details = account_details
+        self.session = self.build_session(self.details)
+
+    def build_session(self, creds):
+        btoken = creds.get("key")
         bearer = f"Bearer {btoken}"
         auth = {"Authorization": bearer}
 
         s = Client()
-
         s.headers.update({"Accept": "application/vnd.github+json"})
         s.headers.update({"X-GitHub-Api-Version": "2022-11-28"})
         s.headers.update(auth)
-        session_info["session"] = s
-        session_info["details"] = details
 
-        sessions.append(session_info)
+        return s
 
-    return sessions
+    def start_workflow(self):
+        details = self.details
+        start = f'https://api.github.com/repos/{details.get("account")}/{details.get("repo")}/actions/workflows/{details.get("file")}/dispatches'
+        s = self.session
+        s.post(start, data='{"ref": "main"}')
 
-
-if __name__ == "__main__":
-    sessions = build_sessions()
-    for session in sessions:
-        account = session.get("details")
-        start = f'https://api.github.com/repos/{account.get("account")}/{account.get("repo")}/actions/workflows/{account.get("file")}/dispatches'
-        running = f'https://api.github.com/repos/{account.get("account")}/{account.get("repo")}/actions/runs?status=in_progress'
-        s = session.get("session")
-        try:
-            s.post(start, data='{"ref": "main"}')
-        except Exception as e:
-            print(e)
-            quit()
-        print("Starting workflow...")
-        sleep(3)
+    def check_running(self):
+        details = self.details
+        running = f'https://api.github.com/repos/{details.get("account")}/{details.get("repo")}/actions/runs?status=in_progress'
+        s = self.session
         total_count = 0
+
         # Check until we see a workflow in progress
         while total_count == 0:
             active_workflow = s.get(running)
             output = active_workflow.json()
             total_count = output.get("total_count")
-            sleep(1)
+
+        active_workflow = s.get(running)
+        self.workflow_details = active_workflow.json()
+
+    def cancel_workflow(self):
+        details = self.details
+        workflow_details = self.workflow_details
+        workflow_id = workflow_details.get("workflow_runs")[0].get("id")
+        cancel = f"https://api.github.com/repos/{details.get("account")}/{details.get("repo")}/actions/runs/{workflow_id}/cancel"
+        s = self.session
+        s.post(cancel)
+
+
+if __name__ == "__main__":
+    creds = read_creds_file()
+    for account in creds.keys():
+        details = creds.get(account)
+        work = Workflow(details)
+        work.start_workflow()
+        work.check_running()
+        print("workflow started")
+        sleep(3)
+        work.cancel_workflow()
+        print("workflow cancelled")
