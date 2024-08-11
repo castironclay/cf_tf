@@ -56,6 +56,23 @@ class Workflow:
         s = self.session
         s.post(cancel)
 
+    def get_workflow_logs(self):
+        details = self.details
+        workflow_details = self.workflow_details
+        workflow_id = workflow_details.get("workflow_runs")[0].get("id")
+        get_logs = f"https://api.github.com/repos/{details.get("account")}/{details.get("repo")}/actions/runs/{workflow_id}/logs"
+        s = self.session
+        logs = s.get(get_logs, follow_redirects=True)
+        download_url = logs.request.url
+
+        # Build fresh client without any special headers and download our logs zip
+        # A pre-signed URL is used so we dont need to worry about authentication
+        new_client = Client()
+        download_file = new_client.get(download_url)
+        # Write the binary response content to a file
+        with open("response.zip", "wb") as file:
+            file.write(download_file.content)
+
 
 if __name__ == "__main__":
     creds = read_creds_file()
@@ -65,6 +82,8 @@ if __name__ == "__main__":
         work.start_workflow()
         work.check_running()
         print("workflow started")
-        sleep(3)
+        sleep(5)
         work.cancel_workflow()
         print("workflow cancelled")
+        sleep(5)
+        work.get_workflow_logs()
